@@ -353,12 +353,14 @@ async function saveAll(silent = false) {
 // ── Apply / unapply edit mode visuals ────────────────────────────────────────
 function applyEditMode() {
   const toggleBtn = document.getElementById('toggle-edit-btn');
+  const publishBtn = document.getElementById('publish-btn');
   const saveBtn = document.getElementById('save-edit-btn');
   const avatarWrapper = document.getElementById('avatar-wrapper');
   const avatarOverlay = document.getElementById('avatar-overlay');
 
   if (isEditing) {
     toggleBtn.textContent = '✖ Cancel';
+    publishBtn.style.display = 'inline-block';
     saveBtn.style.display = 'inline-block';
     document.body.classList.add('edit-mode');
 
@@ -374,6 +376,7 @@ function applyEditMode() {
     if (avatarOverlay) avatarOverlay.style.display = 'flex';
   } else {
     toggleBtn.textContent = '✏️ Edit Mode';
+    publishBtn.style.display = 'none';
     saveBtn.style.display = 'none';
     document.body.classList.remove('edit-mode');
 
@@ -518,6 +521,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const toggleBtn = document.getElementById('toggle-edit-btn');
     const saveBtn = document.getElementById('save-edit-btn');
 
+    const publishBtn = document.getElementById('publish-btn');
+
     adminControls.style.display = 'flex';
 
     toggleBtn.addEventListener('click', () => {
@@ -526,6 +531,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 
     saveBtn.addEventListener('click', saveAll);
+    
+    publishBtn.addEventListener('click', async () => {
+      publishBtn.textContent = '⏳ Publishing…';
+      publishBtn.disabled = true;
+      try {
+        const res = await fetch('/api/deploy', { method: 'POST' });
+        const result = await res.json();
+        if (result.success) {
+          publishBtn.textContent = '✅ Published!';
+        } else {
+          publishBtn.textContent = '❌ Failed';
+          alert('Publish failed: ' + result.error);
+        }
+      } catch (e) {
+        publishBtn.textContent = '❌ Error';
+      }
+      setTimeout(() => {
+        publishBtn.textContent = '🚀 Publish to Live';
+        publishBtn.disabled = false;
+      }, 3000);
+    });
 
     // Add buttons
     document.getElementById('add-experience-btn').addEventListener('click', () => openEditModal('experience', -1));

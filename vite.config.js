@@ -23,24 +23,30 @@ function localJsonEditorPlugin() {
               const jsonPath = path.resolve(process.cwd(), 'public', 'data.json');
               fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
               
-              // Automatically push to GitHub so Vercel redeploys
-              exec('git add . && git commit -m "Auto-save data update" && git push', (error, stdout, stderr) => {
-                if (error) {
-                  console.error('Git push failed:', error);
-                } else {
-                  console.log('Successfully pushed changes to GitHub.');
-                }
-              });
-              
               res.statusCode = 200;
               res.setHeader('Content-Type', 'application/json');
-              res.end(JSON.stringify({ success: true, message: 'Data saved successfully!' }));
+              res.end(JSON.stringify({ success: true, message: 'Data saved locally!' }));
             } catch (err) {
               console.error('Error saving data:', err);
               res.statusCode = 500;
               res.end(JSON.stringify({ success: false, error: err.message }));
             }
           })();
+        } else if (req.url === '/api/deploy' && req.method === 'POST') {
+          // Manually trigger a git commit and push for Vercel
+          exec('git add . && git commit -m "Manual publish to live" && git push', (error, stdout, stderr) => {
+            if (error) {
+              console.error('Git push failed:', error);
+              res.statusCode = 500;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ success: false, error: error.message }));
+            } else {
+              console.log('Successfully published changes to GitHub/Vercel.');
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ success: true, message: 'Deployed successfully!' }));
+            }
+          });
         } else if (req.url === '/api/upload-photo' && req.method === 'POST') {
           // Read raw multipart body
           (async () => {

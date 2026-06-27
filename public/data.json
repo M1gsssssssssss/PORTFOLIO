@@ -54,24 +54,13 @@
   ],
   "projects": [
     {
-      "id": "proj-1",
-      "title": "Cyber Dashboard",
-      "description": "A futuristic analytics dashboard with real-time data visualization.",
+      "id": "id-bopem0z",
+      "title": "CSE REVIEWER",
+      "description": "A comprehensive digital learning platform for Civil Service Exam preparation, replacing static reviewers with interactive practice exams, dynamic flashcards and real-time progress tracking.",
       "tech": [
-        "React",
-        "D3.js"
+        "React · TypeScript · Node.js · Express · SQLite · REST API · RBAC"
       ],
-      "link": "#"
-    },
-    {
-      "id": "proj-2",
-      "title": "Neon E-Commerce",
-      "description": "A high-performance e-commerce platform with a dark mode aesthetic.",
-      "tech": [
-        "Next.js",
-        "Stripe"
-      ],
-      "link": "#"
+      "link": "https://github.com/M1gsssssssssss/Reviewer"
     }
   ]
 }

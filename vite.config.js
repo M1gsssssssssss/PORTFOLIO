@@ -19,7 +19,7 @@ function localJsonEditorPlugin() {
                 body += chunk.toString();
               }
               const data = JSON.parse(body);
-              const jsonPath = path.resolve(process.cwd(), 'data.json');
+              const jsonPath = path.resolve(process.cwd(), 'public', 'data.json');
               fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
               
               res.statusCode = 200;

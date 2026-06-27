@@ -153,6 +153,7 @@ function attachItemControls() {
       if (confirm('Delete this item?')) {
         siteData[section].splice(idx, 1);
         renderAll();
+        saveAll(true);
       }
     };
   });
@@ -168,6 +169,7 @@ function attachTagControls() {
       const tagIdx = parseInt(btn.dataset.tagidx);
       siteData.skills[idx].tags.splice(tagIdx, 1);
       renderSkills();
+      saveAll(true);
     };
   });
 
@@ -180,6 +182,7 @@ function attachTagControls() {
       if (!val) return;
       siteData.skills[idx].tags.push(val);
       renderSkills();
+      saveAll(true);
     };
   });
 
@@ -193,6 +196,7 @@ function attachTagControls() {
         if (!val) return;
         siteData.skills[idx].tags.push(val);
         renderSkills();
+        saveAll(true);
       }
     };
   });
@@ -284,6 +288,7 @@ function openEditModal(section, idx) {
 
     modal.style.display = 'none';
     renderAll();
+    saveAll(true);
   };
 
   document.getElementById('modal-cancel').onclick = () => {
@@ -297,7 +302,7 @@ function openEditModal(section, idx) {
 }
 
 // ── Save all data to disk ────────────────────────────────────────────────────
-async function saveAll() {
+async function saveAll(silent = false) {
   const saveBtn = document.getElementById('save-edit-btn');
 
   // Collect simple text editable fields
@@ -306,8 +311,10 @@ async function saveAll() {
     siteData[key] = el.textContent;
   });
 
-  saveBtn.textContent = '⏳ Saving…';
-  saveBtn.disabled = true;
+  if (!silent && saveBtn) {
+    saveBtn.textContent = '⏳ Saving…';
+    saveBtn.disabled = true;
+  }
 
   try {
     const res = await fetch('/api/save-data', {
@@ -316,25 +323,30 @@ async function saveAll() {
       body: JSON.stringify(siteData),
     });
     const result = await res.json();
-    if (result.success) {
-      saveBtn.textContent = '✅ Saved!';
-      setTimeout(() => {
+    
+    if (!silent && saveBtn) {
+      if (result.success) {
+        saveBtn.textContent = '✅ Saved!';
+        setTimeout(() => {
+          saveBtn.textContent = '💾 Save All';
+          saveBtn.disabled = false;
+          // Turn off edit mode
+          isEditing = false;
+          applyEditMode();
+        }, 1200);
+      } else {
+        alert('Save failed: ' + result.error);
         saveBtn.textContent = '💾 Save All';
         saveBtn.disabled = false;
-        // Turn off edit mode
-        isEditing = false;
-        applyEditMode();
-      }, 1200);
-    } else {
-      alert('Save failed: ' + result.error);
-      saveBtn.textContent = '💾 Save All';
-      saveBtn.disabled = false;
+      }
     }
   } catch (e) {
     console.error(e);
-    alert('Save failed.');
-    saveBtn.textContent = '💾 Save All';
-    saveBtn.disabled = false;
+    if (!silent && saveBtn) {
+      alert('Save failed.');
+      saveBtn.textContent = '💾 Save All';
+      saveBtn.disabled = false;
+    }
   }
 }
 
@@ -354,6 +366,7 @@ function applyEditMode() {
     document.querySelectorAll('[data-editable]').forEach(el => {
       el.contentEditable = 'true';
       el.classList.add('editable-field');
+      el.onblur = () => saveAll(true);
     });
 
     // Avatar

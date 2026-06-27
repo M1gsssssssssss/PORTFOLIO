@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Portfolio | Job Application</title>
+    <meta name="description" content="A modern, tech-focused portfolio designed for job applications." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <!-- Background Particles Canvas -->
+    <canvas id="bg-canvas"></canvas>
+
+    <!-- ── Edit Mode Admin Controls (dev only, injected by JS) ── -->
+    <div id="admin-controls" style="display:none;">
+      <button id="toggle-edit-btn" class="btn-primary">✏️ Edit Mode</button>
+      <button id="save-edit-btn" class="btn-save" style="display:none;">💾 Save All</button>
+    </div>
+
+    <!-- ── Edit Modal ── -->
+    <div id="edit-modal" class="modal-backdrop" style="display:none;" aria-modal="true" role="dialog">
+      <div class="modal-box glass-card">
+        <h3 id="modal-title" class="modal-heading">Edit Item</h3>
+        <div id="modal-fields"></div>
+        <div class="modal-actions">
+          <button id="modal-save" class="btn-primary">Save</button>
+          <button id="modal-cancel" class="btn-secondary">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="app">
+      <nav class="navbar">
+        <div class="nav-brand">&lt;Dev/&gt;</div>
+        <ul class="nav-links">
+          <li><a href="#about">About</a></li>
+          <li><a href="#experience">Experience</a></li>
+          <li><a href="#skills">Skills</a></li>
+          <li><a href="#projects">Projects</a></li>
+          <li><a href="#contact" class="btn-primary">Contact</a></li>
+        </ul>
+      </nav>
+
+      <!-- Hero – full viewport width, lives OUTSIDE main -->
+      <section id="hero" class="hero-section">
+
+        <!-- LEFT: Profile Picture -->
+        <div class="hero-avatar">
+          <div class="avatar-wrapper" id="avatar-wrapper">
+            <img id="profile-pic" src="/profile.jpg" alt="Profile Picture" onerror="this.src='https://placehold.co/300x300/0b0c10/45f3ff?text=You'" />
+            <div class="avatar-edit-overlay" id="avatar-overlay" style="display:none;">
+              <span>📷 Change Photo</span>
+            </div>
+          </div>
+          <input type="file" id="profile-pic-input" accept="image/*" style="display:none;" />
+        </div>
+
+        <!-- CENTRE: Text content -->
+        <div class="hero-content">
+          <h2 class="mono-subtitle" data-editable="hero.subtitle">Hello, World! I am</h2>
+          <h1 class="glitch-title" data-editable="hero.title">Software Engineer</h1>
+          <p class="hero-description" data-editable="hero.description">Building modern, aesthetic, and high-performance applications.</p>
+          <div class="hero-actions">
+            <a href="#projects" class="btn-primary">View Work</a>
+            <a href="#contact" class="btn-secondary">Get in Touch</a>
+          </div>
+        </div>
+
+        <!-- RIGHT: Interactive Robot Scene -->
+        <div class="hero-3d">
+          <canvas id="hero-canvas"></canvas>
+          <p class="canvas-hint">🤖 Click the robot to poke him</p>
+        </div>
+
+      </section>
+
+      <main>
+        <!-- About -->
+        <section id="about" class="section">
+          <h2 class="section-title">About Me</h2>
+          <div class="glass-card about-card">
+            <p data-editable="about.text">Loading...</p>
+          </div>
+        </section>
+
+        <!-- Experience -->
+        <section id="experience" class="section">
+          <h2 class="section-title">Experience</h2>
+          <div class="timeline" id="experience-list"></div>
+          <div id="add-experience-btn-wrap" class="add-btn-wrap" style="display:none;">
+            <button class="btn-add" id="add-experience-btn">+ Add Experience</button>
+          </div>
+        </section>
+
+        <!-- Skills -->
+        <section id="skills" class="section">
+          <h2 class="section-title">Skills &amp; Technologies</h2>
+          <div class="skills-container glass-card" id="skills-list"></div>
+          <div id="add-skill-btn-wrap" class="add-btn-wrap" style="display:none;">
+            <button class="btn-add" id="add-skill-btn">+ Add Skill Category</button>
+          </div>
+        </section>
+
+        <!-- Projects -->
+        <section id="projects" class="section">
+          <h2 class="section-title">Featured Projects</h2>
+          <div class="projects-grid" id="projects-list"></div>
+          <div id="add-project-btn-wrap" class="add-btn-wrap" style="display:none;">
+            <button class="btn-add" id="add-project-btn">+ Add Project</button>
+          </div>
+        </section>
+
+        <!-- Contact -->
+        <section id="contact" class="section">
+          <h2 class="section-title">Let's Connect</h2>
+          <div class="glass-card contact-card">
+            <p>I'm currently looking for new opportunities. Whether you have a question or just want to say hi, I'll try my best to get back to you!</p>
+            <form id="contact-form" class="contact-form">
+              <div class="form-group">
+                <input type="text" id="name" placeholder="Name" required />
+              </div>
+              <div class="form-group">
+                <input type="email" id="email" placeholder="Email" required />
+              </div>
+              <div class="form-group">
+                <textarea id="message" rows="5" placeholder="Message" required></textarea>
+              </div>
+              <button type="submit" class="btn-primary w-full">Send Message</button>
+            </form>
+          </div>
+        </section>
+      </main>
+
+      <footer>
+        <p>&copy; <span id="year"></span> Designed &amp; Built with <span class="neon-text">Cyberpunk Aesthetics</span>.</p>
+      </footer>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+  </body>
+</html>

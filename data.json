@@ -1,0 +1,77 @@
+{
+  "hero.subtitle": "Hello, World! I am",
+  "hero.title": "Christian Miguel S. Licudan",
+  "hero.description": "Building modern, aesthetic, and high-performance applications.",
+  "about.text": "I am a passionate developer with a keen eye for design and a strong foundation in software engineering. I specialize in creating intuitive and visually stunning user experiences while ensuring robust backend performance. I thrive in dynamic environments where I can tackle complex problems and deliver innovative solutions.",
+  "experience": [
+    {
+      "id": "exp-1",
+      "date": "2023 - Present",
+      "title": "Senior Frontend Engineer",
+      "company": "Tech Corp",
+      "description": "Led the development of a highly scalable web application using modern JavaScript frameworks. Improved performance by 40% and mentored junior developers."
+    },
+    {
+      "id": "exp-2",
+      "date": "2020 - 2023",
+      "title": "Full Stack Developer",
+      "company": "Startup Inc",
+      "description": "Designed and implemented RESTful APIs, built responsive UI components, and managed database migrations."
+    }
+  ],
+  "skills": [
+    {
+      "id": "skill-1",
+      "category": "Frontend",
+      "tags": [
+        "HTML5",
+        "CSS3",
+        "JavaScript (ES6+)",
+        "React",
+        "Vue.js"
+      ]
+    },
+    {
+      "id": "skill-2",
+      "category": "Backend",
+      "tags": [
+        "Node.js",
+        "Python",
+        "SQL",
+        "REST APIs"
+      ]
+    },
+    {
+      "id": "skill-3",
+      "category": "Tools",
+      "tags": [
+        "Git",
+        "Docker",
+        "Figma",
+        "AWS"
+      ]
+    }
+  ],
+  "projects": [
+    {
+      "id": "proj-1",
+      "title": "Cyber Dashboard",
+      "description": "A futuristic analytics dashboard with real-time data visualization.",
+      "tech": [
+        "React",
+        "D3.js"
+      ],
+      "link": "#"
+    },
+    {
+      "id": "proj-2",
+      "title": "Neon E-Commerce",
+      "description": "A high-performance e-commerce platform with a dark mode aesthetic.",
+      "tech": [
+        "Next.js",
+        "Stripe"
+      ],
+      "link": "#"
+    }
+  ]
+}

@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import fs from 'fs';
 import path from 'path';
 import { Buffer } from 'buffer';
+import { exec } from 'child_process';
 
 // Vite Plugin to save local data
 function localJsonEditorPlugin() {
@@ -21,6 +22,15 @@ function localJsonEditorPlugin() {
               const data = JSON.parse(body);
               const jsonPath = path.resolve(process.cwd(), 'public', 'data.json');
               fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
+              
+              // Automatically push to GitHub so Vercel redeploys
+              exec('git add . && git commit -m "Auto-save data update" && git push', (error, stdout, stderr) => {
+                if (error) {
+                  console.error('Git push failed:', error);
+                } else {
+                  console.log('Successfully pushed changes to GitHub.');
+                }
+              });
               
               res.statusCode = 200;
               res.setHeader('Content-Type', 'application/json');

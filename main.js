@@ -17,6 +17,13 @@ function uid() {
   return 'id-' + Math.random().toString(36).slice(2, 9);
 }
 
+function stagger(elements, baseDelay = 0, step = 100) {
+  elements.forEach((el, i) => {
+    el.style.animationDelay = `${baseDelay + i * step}ms`;
+    el.classList.add('stagger-child');
+  });
+}
+
 // ── Render: Simple text fields ───────────────────────────────────────────────
 function renderTextFields() {
   document.querySelectorAll('[data-editable]').forEach(el => {
@@ -33,17 +40,22 @@ function renderExperience() {
 
   (siteData.experience || []).forEach((item, idx) => {
     const el = document.createElement('div');
-    el.className = 'timeline-item glass-card';
+    el.className = 'timeline-item glass-card reveal';
+    el.style.transitionDelay = `${idx * 0.12}s`;
     el.dataset.id = item.id;
     el.innerHTML = `
-      <div class="timeline-date">${item.date}</div>
-      <h3>${item.title}</h3>
-      <h4>${item.company}</h4>
+      <div class="timeline-top">
+        <div>
+          <h3>${item.title}</h3>
+          <h4>${item.company}</h4>
+        </div>
+        <span class="timeline-date">${item.date}</span>
+      </div>
       <p>${item.description}</p>
       ${isEditing ? `
         <div class="item-controls">
-          <button class="ctrl-btn edit-btn" data-idx="${idx}" data-section="experience" title="Edit">✏️</button>
-          <button class="ctrl-btn del-btn"  data-idx="${idx}" data-section="experience" title="Delete">🗑️</button>
+          <button class="ctrl-btn edit-btn" data-idx="${idx}" data-section="experience">Edit</button>
+          <button class="ctrl-btn del-btn"  data-idx="${idx}" data-section="experience">Delete</button>
         </div>` : ''}
     `;
     list.appendChild(el);
@@ -51,6 +63,11 @@ function renderExperience() {
 
   document.getElementById('add-experience-btn-wrap').style.display = isEditing ? 'flex' : 'none';
   attachItemControls();
+
+  // Trigger reveal for newly added items
+  requestAnimationFrame(() => {
+    list.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+  });
 }
 
 // ── Render: Skills ───────────────────────────────────────────────────────────
@@ -61,13 +78,14 @@ function renderSkills() {
 
   (siteData.skills || []).forEach((item, idx) => {
     const el = document.createElement('div');
-    el.className = 'skill-category';
+    el.className = 'skill-category glass-card reveal';
+    el.style.transitionDelay = `${idx * 0.1}s`;
     el.dataset.id = item.id;
 
     const tagsHtml = (item.tags || []).map((tag, tagIdx) => `
       <span class="tag">
         ${tag}
-        ${isEditing ? `<button class="tag-del-btn" data-section="skills" data-idx="${idx}" data-tagidx="${tagIdx}" title="Remove tag">×</button>` : ''}
+        ${isEditing ? `<button class="tag-del-btn" data-section="skills" data-idx="${idx}" data-tagidx="${tagIdx}">×</button>` : ''}
       </span>
     `).join('');
 
@@ -76,8 +94,8 @@ function renderSkills() {
         <h3>${item.category}</h3>
         ${isEditing ? `
           <div class="item-controls inline">
-            <button class="ctrl-btn edit-btn" data-idx="${idx}" data-section="skills" title="Edit category">✏️</button>
-            <button class="ctrl-btn del-btn"  data-idx="${idx}" data-section="skills" title="Delete category">🗑️</button>
+            <button class="ctrl-btn edit-btn" data-idx="${idx}" data-section="skills">Edit</button>
+            <button class="ctrl-btn del-btn"  data-idx="${idx}" data-section="skills">Del</button>
           </div>` : ''}
       </div>
       <div class="skill-tags">${tagsHtml}</div>
@@ -93,6 +111,10 @@ function renderSkills() {
   document.getElementById('add-skill-btn-wrap').style.display = isEditing ? 'flex' : 'none';
   attachItemControls();
   attachTagControls();
+
+  requestAnimationFrame(() => {
+    list.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+  });
 }
 
 // ── Render: Projects ─────────────────────────────────────────────────────────
@@ -103,27 +125,77 @@ function renderProjects() {
 
   (siteData.projects || []).forEach((item, idx) => {
     const el = document.createElement('div');
-    el.className = 'project-card glass-card';
+    el.className = 'project-card glass-card reveal';
+    el.style.transitionDelay = `${idx * 0.13}s`;
     el.dataset.id = item.id;
+
     const techHtml = (item.tech || []).map(t => `<span class="tag-small">${t}</span>`).join('');
+    const numLabel = String(idx + 1).padStart(2, '0');
+
+    // ── Media block: video or image or placeholder ──
+    let mediaHtml = '';
+    if (item.media) {
+      const isVideo = /\.(mp4|webm|ogg|mov)(\?|$)/i.test(item.media) || item.mediaType === 'video';
+      if (isVideo) {
+        mediaHtml = `
+          <div class="project-media">
+            <video src="${item.media}" autoplay muted loop playsinline></video>
+            <div class="play-badge">&#9654;</div>
+            ${isEditing ? `<button class="project-media-edit-btn" data-idx="${idx}">Change Media</button>` : ''}
+          </div>`;
+      } else {
+        mediaHtml = `
+          <div class="project-media">
+            <img src="${item.media}" alt="${item.title} screenshot" loading="lazy" />
+            ${isEditing ? `<button class="project-media-edit-btn" data-idx="${idx}">Change Media</button>` : ''}
+          </div>`;
+      }
+    } else {
+      mediaHtml = `
+        <div class="project-media">
+          <div class="project-media-placeholder">
+            <svg class="placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+              <rect x="2" y="3" width="20" height="14" rx="2"/>
+              <path d="M8 21h8M12 17v4"/>
+            </svg>
+            <span class="placeholder-text">No Preview</span>
+          </div>
+          ${isEditing ? `<button class="project-media-edit-btn" data-idx="${idx}">Add Screenshot / Trailer</button>` : ''}
+        </div>`;
+    }
+
     el.innerHTML = `
+      ${mediaHtml}
       <div class="project-content">
+        <div class="project-index">Project ${numLabel}</div>
         <h3>${item.title}</h3>
         <p>${item.description}</p>
         <div class="project-tech">${techHtml}</div>
-        <a href="${item.link}" class="project-link">View Project &rarr;</a>
+        <div class="project-footer">
+          <a href="${item.link || '#'}" class="project-link" target="_blank" rel="noopener">
+            View Project
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14M12 5l7 7-7 7"/>
+            </svg>
+          </a>
+          ${isEditing ? `
+            <div class="item-controls project-controls" style="margin-top:0;">
+              <button class="ctrl-btn edit-btn" data-idx="${idx}" data-section="projects">Edit</button>
+              <button class="ctrl-btn del-btn"  data-idx="${idx}" data-section="projects">Del</button>
+            </div>` : ''}
+        </div>
       </div>
-      ${isEditing ? `
-        <div class="item-controls project-controls">
-          <button class="ctrl-btn edit-btn" data-idx="${idx}" data-section="projects" title="Edit">✏️</button>
-          <button class="ctrl-btn del-btn"  data-idx="${idx}" data-section="projects" title="Delete">🗑️</button>
-        </div>` : ''}
     `;
     list.appendChild(el);
   });
 
   document.getElementById('add-project-btn-wrap').style.display = isEditing ? 'flex' : 'none';
   attachItemControls();
+  attachMediaControls();
+
+  requestAnimationFrame(() => {
+    list.querySelectorAll('.reveal').forEach(el => el.classList.add('visible'));
+  });
 }
 
 // ── Re-render all dynamic sections ──────────────────────────────────────────
@@ -159,13 +231,99 @@ function attachItemControls() {
   });
 }
 
-// ── Attach tag add/delete controls ───────────────────────────────────────────
-function attachTagControls() {
-  // Delete tag
-  document.querySelectorAll('.tag-del-btn').forEach(btn => {
+// ── Attach media upload/url controls for projects ────────────────────────────
+function attachMediaControls() {
+  document.querySelectorAll('.project-media-edit-btn').forEach(btn => {
     btn.onclick = (e) => {
       e.stopPropagation();
       const idx = parseInt(btn.dataset.idx);
+      openMediaModal(idx);
+    };
+  });
+}
+
+// ── Media Modal ──────────────────────────────────────────────────────────────
+function openMediaModal(projectIdx) {
+  const item = siteData.projects[projectIdx];
+
+  // Build a small modal for media URL or file upload
+  const modal = document.getElementById('edit-modal');
+  const titleEl = document.getElementById('modal-title');
+  const container = document.getElementById('modal-fields');
+
+  titleEl.textContent = `Set Media — ${item.title}`;
+  container.innerHTML = `
+    <div class="modal-field">
+      <label class="modal-label">Screenshot / Trailer URL (or paste a direct link)</label>
+      <input class="modal-input" type="text" id="media-url-input" placeholder="https://… (.jpg, .png, .mp4, .webm)" value="${item.media || ''}" />
+    </div>
+    <div class="modal-field" style="text-align:center; color: #3d6080; font-family: var(--font-mono); font-size:0.8rem;">— or upload a file —</div>
+    <div class="modal-field">
+      <input class="modal-input" type="file" id="media-file-input" accept="image/*,video/*" style="padding:0.5rem;" />
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">Media Type Override (auto-detected from extension)</label>
+      <select class="modal-input" id="media-type-input">
+        <option value="" ${!item.mediaType ? 'selected' : ''}>Auto-detect</option>
+        <option value="image" ${item.mediaType === 'image' ? 'selected' : ''}>Image</option>
+        <option value="video" ${item.mediaType === 'video' ? 'selected' : ''}>Video</option>
+      </select>
+    </div>
+  `;
+
+  modal.style.display = 'flex';
+
+  // File chosen → preview URL
+  const fileInput = document.getElementById('media-file-input');
+  fileInput.onchange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Upload to server
+    const formData = new FormData();
+    formData.append('media', file);
+    formData.append('projectId', item.id);
+    try {
+      const res = await fetch('/api/upload-media', { method: 'POST', body: formData });
+      const result = await res.json();
+      if (result.success) {
+        document.getElementById('media-url-input').value = result.path;
+      } else {
+        // Fallback: use local object URL for preview (won't persist to server)
+        document.getElementById('media-url-input').value = URL.createObjectURL(file);
+      }
+    } catch {
+      document.getElementById('media-url-input').value = URL.createObjectURL(file);
+    }
+  };
+
+  document.getElementById('modal-save').onclick = () => {
+    const url       = document.getElementById('media-url-input').value.trim();
+    const typeOver  = document.getElementById('media-type-input').value;
+
+    siteData.projects[projectIdx].media     = url || undefined;
+    siteData.projects[projectIdx].mediaType = typeOver || undefined;
+
+    modal.style.display = 'none';
+    renderAll();
+    saveAll(true);
+  };
+
+  document.getElementById('modal-cancel').onclick = () => {
+    modal.style.display = 'none';
+  };
+
+  modal.onclick = (e) => {
+    if (e.target === modal) modal.style.display = 'none';
+  };
+}
+
+// ── Attach tag add/delete controls ───────────────────────────────────────────
+function attachTagControls() {
+  document.querySelectorAll('.tag-del-btn').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      const idx    = parseInt(btn.dataset.idx);
       const tagIdx = parseInt(btn.dataset.tagidx);
       siteData.skills[idx].tags.splice(tagIdx, 1);
       renderSkills();
@@ -173,12 +331,11 @@ function attachTagControls() {
     };
   });
 
-  // Add tag on button click
   document.querySelectorAll('.btn-add-tag').forEach(btn => {
     btn.onclick = () => {
-      const idx = parseInt(btn.dataset.idx);
+      const idx   = parseInt(btn.dataset.idx);
       const input = document.querySelector(`.tag-input[data-idx="${idx}"]`);
-      const val = input.value.trim();
+      const val   = input.value.trim();
       if (!val) return;
       siteData.skills[idx].tags.push(val);
       renderSkills();
@@ -186,7 +343,6 @@ function attachTagControls() {
     };
   });
 
-  // Add tag on Enter
   document.querySelectorAll('.tag-input').forEach(input => {
     input.onkeydown = (e) => {
       if (e.key === 'Enter') {
@@ -217,7 +373,7 @@ const FIELD_DEFS = {
     { key: 'title',       label: 'Project Title', type: 'text',     placeholder: 'My Awesome Project' },
     { key: 'description', label: 'Description',   type: 'textarea', placeholder: 'What does it do?' },
     { key: 'tech',        label: 'Technologies',  type: 'text',     placeholder: 'React, Node.js, … (comma-separated)' },
-    { key: 'link',        label: 'Link URL',      type: 'text',     placeholder: 'https://…' },
+    { key: 'link',        label: 'Live / Repo URL', type: 'text',   placeholder: 'https://…' },
   ],
 };
 
@@ -229,10 +385,10 @@ const SECTION_LABELS = {
 
 // ── Open Edit Modal ──────────────────────────────────────────────────────────
 function openEditModal(section, idx) {
-  const item = idx === -1 ? {} : { ...siteData[section][idx] };
+  const item   = idx === -1 ? {} : { ...siteData[section][idx] };
   const fields = FIELD_DEFS[section];
-  const isNew = idx === -1;
-  const label = SECTION_LABELS[section] || section;
+  const isNew  = idx === -1;
+  const label  = SECTION_LABELS[section] || section;
 
   document.getElementById('modal-title').textContent = (isNew ? 'Add ' : 'Edit ') + label;
   const container = document.getElementById('modal-fields');
@@ -240,7 +396,6 @@ function openEditModal(section, idx) {
 
   fields.forEach(f => {
     let val = item[f.key] ?? '';
-    // tech is an array — join for editing
     if (Array.isArray(val)) val = val.join(', ');
 
     const wrap = document.createElement('div');
@@ -261,7 +416,6 @@ function openEditModal(section, idx) {
 
   const modal = document.getElementById('edit-modal');
   modal.style.display = 'flex';
-  // Focus first input
   const first = container.querySelector('.modal-input');
   if (first) setTimeout(() => first.focus(), 50);
 
@@ -272,7 +426,6 @@ function openEditModal(section, idx) {
     container.querySelectorAll('.modal-input').forEach(el => {
       const key = el.dataset.key;
       let val = el.value.trim();
-      // Convert tech back to array
       if (key === 'tech') {
         updated[key] = val.split(',').map(s => s.trim()).filter(Boolean);
       } else {
@@ -295,7 +448,6 @@ function openEditModal(section, idx) {
     modal.style.display = 'none';
   };
 
-  // Close on backdrop click
   modal.onclick = (e) => {
     if (e.target === modal) modal.style.display = 'none';
   };
@@ -305,14 +457,13 @@ function openEditModal(section, idx) {
 async function saveAll(silent = false) {
   const saveBtn = document.getElementById('save-edit-btn');
 
-  // Collect simple text editable fields
   document.querySelectorAll('[data-editable]').forEach(el => {
     const key = el.getAttribute('data-editable');
     siteData[key] = el.textContent;
   });
 
   if (!silent && saveBtn) {
-    saveBtn.textContent = '⏳ Saving…';
+    saveBtn.textContent = 'Saving…';
     saveBtn.disabled = true;
   }
 
@@ -323,20 +474,19 @@ async function saveAll(silent = false) {
       body: JSON.stringify(siteData),
     });
     const result = await res.json();
-    
+
     if (!silent && saveBtn) {
       if (result.success) {
-        saveBtn.textContent = '✅ Saved!';
+        saveBtn.textContent = 'Saved';
         setTimeout(() => {
-          saveBtn.textContent = '💾 Save All';
+          saveBtn.textContent = 'Save All';
           saveBtn.disabled = false;
-          // Turn off edit mode
           isEditing = false;
           applyEditMode();
         }, 1200);
       } else {
         alert('Save failed: ' + result.error);
-        saveBtn.textContent = '💾 Save All';
+        saveBtn.textContent = 'Save All';
         saveBtn.disabled = false;
       }
     }
@@ -344,7 +494,7 @@ async function saveAll(silent = false) {
     console.error(e);
     if (!silent && saveBtn) {
       alert('Save failed.');
-      saveBtn.textContent = '💾 Save All';
+      saveBtn.textContent = 'Save All';
       saveBtn.disabled = false;
     }
   }
@@ -352,32 +502,30 @@ async function saveAll(silent = false) {
 
 // ── Apply / unapply edit mode visuals ────────────────────────────────────────
 function applyEditMode() {
-  const toggleBtn = document.getElementById('toggle-edit-btn');
-  const publishBtn = document.getElementById('publish-btn');
-  const saveBtn = document.getElementById('save-edit-btn');
+  const toggleBtn    = document.getElementById('toggle-edit-btn');
+  const publishBtn   = document.getElementById('publish-btn');
+  const saveBtn      = document.getElementById('save-edit-btn');
   const avatarWrapper = document.getElementById('avatar-wrapper');
   const avatarOverlay = document.getElementById('avatar-overlay');
 
   if (isEditing) {
-    toggleBtn.textContent = '✖ Cancel';
+    toggleBtn.textContent = 'Cancel';
     publishBtn.style.display = 'inline-block';
-    saveBtn.style.display = 'inline-block';
+    saveBtn.style.display    = 'inline-block';
     document.body.classList.add('edit-mode');
 
-    // Text editable fields
     document.querySelectorAll('[data-editable]').forEach(el => {
       el.contentEditable = 'true';
       el.classList.add('editable-field');
       el.onblur = () => saveAll(true);
     });
 
-    // Avatar
     if (avatarWrapper) avatarWrapper.classList.add('editable');
     if (avatarOverlay) avatarOverlay.style.display = 'flex';
   } else {
-    toggleBtn.textContent = '✏️ Edit Mode';
+    toggleBtn.textContent    = 'Edit Mode';
     publishBtn.style.display = 'none';
-    saveBtn.style.display = 'none';
+    saveBtn.style.display    = 'none';
     document.body.classList.remove('edit-mode');
 
     document.querySelectorAll('[data-editable]').forEach(el => {
@@ -389,34 +537,43 @@ function applyEditMode() {
     if (avatarOverlay) avatarOverlay.style.display = 'none';
   }
 
-  renderAll(); // re-render with/without edit controls
+  renderAll();
 }
 
-// ── Scroll animations ────────────────────────────────────────────────────────
+// ── Scroll-reveal animations (IntersectionObserver) ──────────────────────────
 function initScrollAnimations() {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
-        entry.target.style.opacity = '1';
-        entry.target.style.transform = 'translateY(0)';
+        entry.target.classList.add('visible');
         observer.unobserve(entry.target);
       }
     });
-  }, { threshold: 0.1, rootMargin: '0px 0px -50px 0px' });
+  }, { threshold: 0.06, rootMargin: '0px 0px -30px 0px' });
 
-  document.querySelectorAll('.section').forEach(el => {
-    el.style.opacity = '0';
-    el.style.transform = 'translateY(20px)';
-    el.style.transition = 'opacity 0.6s ease-out, transform 0.6s ease-out';
-    observer.observe(el);
-  });
+  const revealAll = () => {
+    document.querySelectorAll('.reveal, .reveal-up, .reveal-left, .reveal-right').forEach(el => {
+      observer.observe(el);
+    });
+  };
+
+  revealAll();
+  return revealAll;
+}
+
+// ── Navbar scroll effect ─────────────────────────────────────────────────────
+function initNavbar() {
+  const nav = document.getElementById('main-nav');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 60);
+  }, { passive: true });
 }
 
 // ── Profile photo upload ─────────────────────────────────────────────────────
 function initPhotoUpload() {
-  const avatarWrapper = document.getElementById('avatar-wrapper');
+  const avatarWrapper  = document.getElementById('avatar-wrapper');
   const profilePicInput = document.getElementById('profile-pic-input');
-  const profilePicImg = document.getElementById('profile-pic');
+  const profilePicImg   = document.getElementById('profile-pic');
 
   if (avatarWrapper) {
     avatarWrapper.addEventListener('click', () => {
@@ -435,14 +592,14 @@ function initPhotoUpload() {
       formData.append('photo', file);
 
       try {
-        const res = await fetch('/api/upload-photo', { method: 'POST', body: formData });
+        const res    = await fetch('/api/upload-photo', { method: 'POST', body: formData });
         const result = await res.json();
         if (result.success) {
           profilePicImg.src = result.path + '?t=' + Date.now();
         } else {
           alert('Photo upload failed: ' + result.error);
         }
-      } catch (err) {
+      } catch {
         alert('Photo upload failed.');
       }
       profilePicInput.value = '';
@@ -457,19 +614,20 @@ function initContactForm() {
 
   contactForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    const btn = contactForm.querySelector('button[type="submit"]');
+    const btn  = contactForm.querySelector('button[type="submit"]');
     const orig = btn.textContent;
     btn.textContent = 'Sending…';
-    btn.disabled = true;
+    btn.disabled    = true;
+    btn.style.opacity = '0.7';
 
     setTimeout(() => {
-      btn.textContent = 'Message Sent!';
-      btn.style.backgroundColor = 'rgba(69, 243, 255, 0.2)';
+      btn.textContent   = 'Message Sent';
+      btn.style.opacity = '1';
       contactForm.reset();
 
       setTimeout(() => {
-        btn.textContent = orig;
-        btn.style.backgroundColor = '';
+        btn.textContent  = orig;
+        btn.style.opacity = '';
         btn.disabled = false;
       }, 3000);
     }, 1500);
@@ -502,15 +660,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   // Interactive Background particles
   initBgParticles('bg-canvas');
 
-  // Subtle mouse-reactive background glow
+  // Mouse-reactive background glow
   window.addEventListener('mousemove', (e) => {
-    const x = (e.clientX / window.innerWidth) * 100;
+    const x = (e.clientX / window.innerWidth)  * 100;
     const y = (e.clientY / window.innerHeight) * 100;
     document.documentElement.style.setProperty('--mouse-x', `${x}%`);
     document.documentElement.style.setProperty('--mouse-y', `${y}%`);
-  });
+  }, { passive: true });
 
-  initScrollAnimations();
+  const reObserve = initScrollAnimations();
+  initNavbar();
   initContactForm();
   initSmoothScroll();
   initPhotoUpload();
@@ -518,47 +677,41 @@ document.addEventListener('DOMContentLoaded', async () => {
   // DEV-ONLY: admin panel
   if (import.meta.env.DEV) {
     const adminControls = document.getElementById('admin-controls');
-    const toggleBtn = document.getElementById('toggle-edit-btn');
-    const saveBtn = document.getElementById('save-edit-btn');
-
-    const publishBtn = document.getElementById('publish-btn');
+    const toggleBtn     = document.getElementById('toggle-edit-btn');
+    const saveBtn       = document.getElementById('save-edit-btn');
+    const publishBtn    = document.getElementById('publish-btn');
 
     adminControls.style.display = 'flex';
 
     toggleBtn.addEventListener('click', () => {
       isEditing = !isEditing;
       applyEditMode();
+      setTimeout(reObserve, 100);
     });
 
     saveBtn.addEventListener('click', saveAll);
-    
+
     publishBtn.addEventListener('click', async () => {
-      publishBtn.textContent = '⏳ Publishing…';
-      publishBtn.disabled = true;
+      publishBtn.textContent = 'Publishing…';
+      publishBtn.disabled    = true;
       try {
-        const res = await fetch('/api/deploy', { method: 'POST' });
+        const res    = await fetch('/api/deploy', { method: 'POST' });
         const result = await res.json();
-        if (result.success) {
-          publishBtn.textContent = '✅ Published!';
-        } else {
-          publishBtn.textContent = '❌ Failed';
-          alert('Publish failed: ' + result.error);
-        }
-      } catch (e) {
-        publishBtn.textContent = '❌ Error';
+        publishBtn.textContent = result.success ? 'Published!' : 'Failed';
+        if (!result.success) alert('Publish failed: ' + result.error);
+      } catch {
+        publishBtn.textContent = 'Error';
       }
       setTimeout(() => {
-        publishBtn.textContent = '🚀 Publish to Live';
-        publishBtn.disabled = false;
+        publishBtn.textContent = 'Publish Live';
+        publishBtn.disabled    = false;
       }, 3000);
     });
 
-    // Add buttons
     document.getElementById('add-experience-btn').addEventListener('click', () => openEditModal('experience', -1));
-    document.getElementById('add-skill-btn').addEventListener('click', () => openEditModal('skills', -1));
-    document.getElementById('add-project-btn').addEventListener('click', () => openEditModal('projects', -1));
+    document.getElementById('add-skill-btn').addEventListener('click',      () => openEditModal('skills', -1));
+    document.getElementById('add-project-btn').addEventListener('click',    () => openEditModal('projects', -1));
 
-    // Close modal on Escape
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') document.getElementById('edit-modal').style.display = 'none';
     });

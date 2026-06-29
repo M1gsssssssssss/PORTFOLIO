@@ -1,22 +1,22 @@
 {
   "hero.subtitle": "Hello, World! I am",
   "hero.title": "Christian Miguel S. Licudan",
-  "hero.description": "IT Graduate | Full-Stack Developer | Multi-Media ",
+  "hero.description": "IT Graduate | Full-Stack Developer | Multi-Media ",
   "about.text": "Dynamic Full-Stack Developer & Multimedia Specialist with a BSIT degree. Seamlessly bridges the gap between robust back-end logic, intuitive front-end design, and engaging digital media. Adept at building scalable web applications while ensuring a polished visual identity and seamless user experience.",
   "experience": [
     {
-      "id": "exp-1",
-      "date": "2023 - Present",
-      "title": "Senior Frontend Engineer",
-      "company": "Tech Corp",
-      "description": "Led the development of a highly scalable web application using modern JavaScript frameworks. Improved performance by 40% and mentored junior developers."
+      "id": "id-5rau1t8",
+      "date": "2025 - 2026",
+      "title": "Firearms and Ammunition Monitoring Management",
+      "company": "RCSU PNP",
+      "description": "Full-stack developer for our Capstone project (Team Leader)"
     },
     {
-      "id": "exp-2",
-      "date": "2020 - 2023",
-      "title": "Full Stack Developer",
-      "company": "Startup Inc",
-      "description": "Designed and implemented RESTful APIs, built responsive UI components, and managed database migrations."
+      "id": "id-iu8dtpc",
+      "date": "2026",
+      "title": "Software Developer/Multi-Media/Tech Support/IT Support",
+      "company": "Bureau of Fire Protection Bangar",
+      "description": "Student Intern for Bureau of Fire Protection Bangar to create their own system to make their work easier"
     }
   ],
   "skills": [
@@ -58,9 +58,16 @@
       "title": "CSE REVIEWER",
       "description": "A comprehensive digital learning platform for Civil Service Exam preparation, replacing static reviewers with interactive practice exams, dynamic flashcards and real-time progress tracking.",
       "tech": [
-        "React · TypeScript · Node.js · Express · SQLite · REST API · RBAC"
+        "React",
+        "TypeScript",
+        "Node.js",
+        "Express",
+        "SQLite",
+        "REST API",
+        "RBAC"
       ],
-      "link": "https://github.com/M1gsssssssssss/Reviewer"
+      "link": "https://github.com/M1gsssssssssss/Reviewer",
+      "media": "/media/id-bopem0z-1782715722054.png"
     }
   ]
 }

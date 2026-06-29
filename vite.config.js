@@ -107,6 +107,64 @@ function localJsonEditorPlugin() {
               res.end(JSON.stringify({ success: false, error: err.message }));
             }
           })();
+        } else if (req.url === '/api/upload-media' && req.method === 'POST') {
+          // Save project screenshot or trailer video
+          (async () => {
+            try {
+              const chunks = [];
+              for await (const chunk of req) chunks.push(chunk);
+              const rawBody = Buffer.concat(chunks);
+
+              const contentType = req.headers['content-type'] || '';
+              const boundaryMatch = contentType.match(/boundary=(.+)$/);
+              if (!boundaryMatch) throw new Error('No boundary found');
+              const boundary = '--' + boundaryMatch[1];
+
+              const bodyStr = rawBody.toString('binary');
+              const parts   = bodyStr.split(boundary);
+              let fileBuffer = null;
+              let ext = 'jpg';
+              let projectId = 'project';
+
+              for (const part of parts) {
+                if (part.includes('Content-Disposition') && part.includes('name="projectId"')) {
+                  const headerEnd = part.indexOf('\r\n\r\n');
+                  if (headerEnd !== -1) {
+                    projectId = part.substring(headerEnd + 4).replace(/\r\n$/, '').trim() || 'project';
+                  }
+                }
+                if (part.includes('Content-Disposition') && part.includes('filename=')) {
+                  const filenameMatch = part.match(/filename="(.+?)"/i);
+                  if (filenameMatch) ext = filenameMatch[1].split('.').pop().toLowerCase() || 'jpg';
+                  const headerEnd = part.indexOf('\r\n\r\n');
+                  if (headerEnd !== -1) {
+                    const fileStart = headerEnd + 4;
+                    const fileEnd   = part.lastIndexOf('\r\n');
+                    const filePart  = part.substring(fileStart, fileEnd > fileStart ? fileEnd : undefined);
+                    fileBuffer = Buffer.from(filePart, 'binary');
+                  }
+                }
+              }
+
+              if (!fileBuffer) throw new Error('No file found in upload');
+
+              // Save to public/media/
+              const mediaDir = path.resolve(process.cwd(), 'public', 'media');
+              if (!fs.existsSync(mediaDir)) fs.mkdirSync(mediaDir, { recursive: true });
+
+              const filename = `${projectId}-${Date.now()}.${ext}`;
+              const savePath = path.resolve(mediaDir, filename);
+              fs.writeFileSync(savePath, fileBuffer);
+
+              res.statusCode = 200;
+              res.setHeader('Content-Type', 'application/json');
+              res.end(JSON.stringify({ success: true, path: `/media/${filename}` }));
+            } catch (err) {
+              console.error('Media upload error:', err);
+              res.statusCode = 500;
+              res.end(JSON.stringify({ success: false, error: err.message }));
+            }
+          })();
         } else {
           next();
         }
